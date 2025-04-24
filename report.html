@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trading Detailed Report & Loan Eligibility</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* Report Page Specific Styles */
+        body {
+            background-color: #191818;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #0e1d44;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-buttons button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #536dfd;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .header-buttons button:hover {
+            background-color: #405bdb;
+        }
+
+        main {
+            padding: 2rem;
+        }
+
+        .report-section {
+            margin-bottom: 2rem;
+        }
+
+        .metrics {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .metric-card {
+            background-color: #292828;
+            padding: 1rem;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .chart-container {
+            max-width: 600px;
+            margin: 1rem auto;
+        }
+
+        .loan-eligibility,
+        .additional-charts {
+            text-align: center;
+        }
+
+        .loan-eligibility p,
+        .additional-charts p {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-buttons">
+            <button id="backBtn">← Back to Dashboard</button>
+        </div>
+        <h1>Trading Detailed Report & Loan Eligibility</h1>
+        <div class="header-buttons">
+            <button id="downloadReport">Download Report</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Summary Metrics Section -->
+        <section class="report-section">
+            <h2>Summary Report</h2>
+            <div class="metrics" id="summaryMetrics">
+                <!-- Metric cards with IDs -->
+                <div class="metric-card">
+                    <h3>Total Trades</h3>
+                    <p id="totalTrades">0</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Win Rate</h3>
+                    <p id="winRate">0%</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Total Profit</h3>
+                    <p id="totalProfit">$0</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Avg. Trade Profit</h3>
+                    <p id="avgTradeProfit">$0</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Max Win</h3>
+                    <p id="maxWin">$0</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Max Loss</h3>
+                    <p id="maxLoss">$0</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Avg. Risk:Reward</h3>
+                    <p id="avgRiskReward">0</p>
+                </div>
+                <div class="metric-card">
+                    <h3>Profit Factor</h3>
+                    <p id="profitFactor">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loan Eligibility Section -->
+        <section class="report-section loan-eligibility">
+            <h2>Loan Eligibility Score</h2>
+            <div class="chart-container">
+                <canvas id="eligibilityChart"></canvas>
+            </div>
+            <p id="eligibilityText"></p>
+        </section>
+
+        <!-- Detailed Trading Performance -->
+        <section class="report-section">
+            <h2>Monthly Trading Performance</h2>
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Additional Metrics Section -->
+        <section class="report-section additional-charts">
+            <h2>Additional Metrics</h2>
+            <div class="metrics" id="additionalMetrics">
+                <!-- Additional metrics will be displayed here -->
+            </div>
+            <div class="chart-container">
+                <canvas id="cumulativeChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <canvas id="distributionChart"></canvas>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import apiService from "./services/apiService.js";
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("You must log in first!");
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Back Button Event Listener
+            document.getElementById("backBtn").addEventListener("click", () => {
+                window.location.href = "dashboard.html";
+            });
+
+            // Download Report Button Event Listener
+            document.getElementById("downloadReport").addEventListener("click", downloadReport);
+
+            try {
+                // Fetch the logged-in user's trades from your database
+                const trades = await apiService.getTrades(token);
+                // Sort trades chronologically for cumulative analysis
+                trades.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                // --- Summary Metrics Calculation ---
+                const totalTrades = trades.length;
+                const totalWins = trades.filter(t => t.winLoss === "Win").length;
+                const winRate = totalTrades > 0 ? totalWins / totalTrades : 0;
+
+                // Calculate profit for each trade: if a profit field exists, use it; otherwise simulate:
+                const tradeProfits = trades.map(trade =>
+                    trade.profit !== undefined ? trade.profit : (trade.winLoss === "Win" ? trade.riskToReward : -trade.riskToReward)
+                );
+                const totalProfit = tradeProfits.reduce((sum, p) => sum + p, 0);
+                const avgTradeProfit = totalTrades > 0 ? totalProfit / totalTrades : 0;
+                const maxWin = trades.filter(t => t.winLoss === "Win").reduce((max, trade) => {
+                    const profit = trade.profit !== undefined ? trade.profit : trade.riskToReward;
+                    return profit > max ? profit : max;
+                }, 0);
+                const maxLoss = trades.filter(t => t.winLoss === "Loss").reduce((min, trade) => {
+                    const profit = trade.profit !== undefined ? trade.profit : -trade.riskToReward;
+                    return profit < min ? profit : min;
+                }, 0);
+                const avgRiskReward = totalTrades > 0 ? trades.reduce((sum, trade) => sum + trade.riskToReward, 0) / totalTrades : 0;
+                // Profit Factor: total profit of wins divided by the absolute sum of losses
+                const totalWinsProfit = trades.filter(t => t.winLoss === "Win").reduce((sum, trade) => {
+                    const profit = trade.profit !== undefined ? trade.profit : trade.riskToReward;
+                    return sum + profit;
+                }, 0);
+                const totalLossesProfit = trades.filter(t => t.winLoss === "Loss").reduce((sum, trade) => {
+                    const loss = trade.profit !== undefined ? trade.profit : -trade.riskToReward;
+                    return sum + loss;
+                }, 0);
+                const profitFactor = Math.abs(totalLossesProfit) > 0 ? totalWinsProfit / Math.abs(totalLossesProfit) : totalWinsProfit;
+
+                // Populate summary metrics cards with IDs
+                document.getElementById("totalTrades").textContent = totalTrades;
+                document.getElementById("winRate").textContent = (winRate * 100).toFixed(2) + "%";
+                document.getElementById("totalProfit").textContent = "$" + totalProfit.toFixed(2);
+                document.getElementById("avgTradeProfit").textContent = "$" + avgTradeProfit.toFixed(2);
+                document.getElementById("maxWin").textContent = "$" + maxWin.toFixed(2);
+                document.getElementById("maxLoss").textContent = "$" + maxLoss.toFixed(2);
+                document.getElementById("avgRiskReward").textContent = avgRiskReward.toFixed(2);
+                document.getElementById("profitFactor").textContent = profitFactor.toFixed(2);
+
+                // --- Loan Eligibility Calculation ---
+                let eligibilityScore = Math.min(
+                    (winRate * 50) + ((totalProfit / 1000) * 10) + (avgRiskReward * 5),
+                    100
+                );
+                eligibilityScore = Number(eligibilityScore.toFixed(2));
+                const eligibilityTextElem = document.getElementById("eligibilityText");
+                if (eligibilityScore >= 80) {
+                    eligibilityTextElem.textContent = `Excellent! Your loan eligibility score is ${eligibilityScore}%. You are highly likely to secure a bank loan.`;
+                } else if (eligibilityScore >= 50) {
+                    eligibilityTextElem.textContent = `Good! Your loan eligibility score is ${eligibilityScore}%. With some improvements, your chances of securing a bank loan are promising.`;
+                } else {
+                    eligibilityTextElem.textContent = `Your loan eligibility score is ${eligibilityScore}%. Consider improving your trading performance to boost your chances of getting a bank loan.`;
+                }
+
+                // Loan Eligibility Doughnut Chart
+                const ctxEligibility = document.getElementById('eligibilityChart').getContext('2d');
+                new Chart(ctxEligibility, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Score', 'Remaining'],
+                        datasets: [{
+                            data: [eligibilityScore, 100 - eligibilityScore],
+                            backgroundColor: ['#4CAF50', '#FF4C4C']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                // --- Detailed Trading Performance: Monthly Profit ---
+                const monthlyProfit = Array(12).fill(0);
+                trades.forEach(trade => {
+                    const month = new Date(trade.date).getMonth();
+                    const profit = trade.profit !== undefined ? trade.profit : (trade.winLoss === "Win" ? trade.riskToReward : -trade.riskToReward);
+                    monthlyProfit[month] += profit;
+                });
+                const ctxPerformance = document.getElementById('performanceChart').getContext('2d');
+                new Chart(ctxPerformance, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'Monthly Profit ($)',
+                            data: monthlyProfit,
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // --- Additional Metrics Section ---
+                // 1. Cumulative Profit Chart (over time)
+                const cumulativeProfit = [];
+                let runningTotal = 0;
+                trades.forEach(trade => {
+                    const profit = trade.profit !== undefined ? trade.profit : (trade.winLoss === "Win" ? trade.riskToReward : -trade.riskToReward);
+                    runningTotal += profit;
+                    cumulativeProfit.push(runningTotal);
+                });
+                const ctxCumulative = document.getElementById('cumulativeChart').getContext('2d');
+                new Chart(ctxCumulative, {
+                    type: 'line',
+                    data: {
+                        labels: trades.map(trade => new Date(trade.date).toLocaleDateString()),
+                        datasets: [{
+                            label: 'Cumulative Profit ($)',
+                            data: cumulativeProfit,
+                            borderColor: '#FF9800',
+                            backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: false } }
+                    }
+                });
+
+                // 2. Trade Distribution by Symbol: Pie chart
+                const symbolCounts = {};
+                trades.forEach(trade => {
+                    symbolCounts[trade.symbol] = (symbolCounts[trade.symbol] || 0) + 1;
+                });
+                const distributionLabels = Object.keys(symbolCounts);
+                const distributionData = Object.values(symbolCounts);
+                const ctxDistribution = document.getElementById('distributionChart').getContext('2d');
+                new Chart(ctxDistribution, {
+                    type: 'pie',
+                    data: {
+                        labels: distributionLabels,
+                        datasets: [{
+                            data: distributionData,
+                            backgroundColor: distributionLabels.map(() => '#' + Math.floor(Math.random() * 16777215).toString(16))
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                // Populate additional metrics cards
+                const additionalMetricsElem = document.getElementById("additionalMetrics");
+                additionalMetricsElem.innerHTML = `
+          <div class="metric-card">
+            <h3>Avg. Trade Profit</h3>
+            <p>$${avgTradeProfit.toFixed(2)}</p>
+          </div>
+          <div class="metric-card">
+            <h3>Profit Factor</h3>
+            <p>${profitFactor.toFixed(2)}</p>
+          </div>
+          <div class="metric-card">
+            <h3>Max Win</h3>
+            <p>$${maxWin.toFixed(2)}</p>
+          </div>
+          <div class="metric-card">
+            <h3>Max Loss</h3>
+            <p>$${maxLoss.toFixed(2)}</p>
+          </div>
+        `;
+            } catch (error) {
+                console.error("Error fetching trades:", error);
+                alert("Error fetching trading data. Please try again later.");
+            }
+        });
+
+        // Function to download the report data as a PDF using jsPDF
+        function downloadReport() {
+            const { jsPDF } = window.jspdf;
+
+            // Create a jsPDF instance in points (pt) on letter-sized paper
+            const doc = new jsPDF({
+                unit: "pt",
+                format: "letter"
+            });
+
+            // Gather metrics from the DOM
+            const reportData = {
+                totalTrades: document.getElementById("totalTrades").textContent,
+                winRate: document.getElementById("winRate").textContent,
+                totalProfit: document.getElementById("totalProfit").textContent,
+                avgTradeProfit: document.getElementById("avgTradeProfit").textContent,
+                maxWin: document.getElementById("maxWin").textContent,
+                maxLoss: document.getElementById("maxLoss").textContent,
+                avgRiskReward: document.getElementById("avgRiskReward").textContent,
+                profitFactor: document.getElementById("profitFactor").textContent,
+                eligibility: document.getElementById("eligibilityText").textContent
+            };
+
+            // Margins and layout
+            const leftMargin = 50;         // left boundary
+            const rightMargin = 562;       // ~612 width for letter - 50 margin
+            const maxTextWidth = 460;      // narrower than the full width to avoid cutoff
+            let y = 60;                    // starting vertical position
+
+            // Configure line-height for better readability
+            doc.setLineHeightFactor(1.3);
+
+            // 1) Title
+            doc.setFont("times", "bold");
+            doc.setFontSize(16);
+            doc.text("Trading Detailed Report & Loan Eligibility Assessment", 306, y, {
+                align: "center"
+            });
+            y += 20;
+
+            // Horizontal rule
+            doc.setLineWidth(1);
+            doc.line(leftMargin, y, rightMargin, y);
+            y += 30;
+
+            // 2) Intro Disclaimer
+            doc.setFont("times", "italic");
+            doc.setFontSize(10);
+            const introDisclaimer = `This document is provided as an overview of your trading performance and
+          an informal assessment of potential loan eligibility. It does not constitute a
+          guarantee of credit, nor does it replace formal financial advice. All figures are
+          for illustrative purposes only. Please consult with a licensed financial
+          professional or lender for official guidance.`;
+
+            const introLines = doc.splitTextToSize(introDisclaimer, maxTextWidth);
+            introLines.forEach(line => {
+                doc.text(line, leftMargin, y, { align: "left" });
+                y += 12;
+            });
+            y += 20;
+
+            // 3) Summary of Key Metrics
+            doc.setFont("times", "bold");
+            doc.setFontSize(12);
+            doc.text("1. Summary of Key Metrics", leftMargin, y);
+            y += 20;
+
+            doc.setFont("times", "normal");
+            doc.setFontSize(11);
+
+            const metrics = [
+                `Total Trades: ${reportData.totalTrades}`,
+                `Win Rate: ${reportData.winRate}`,
+                `Total Profit: ${reportData.totalProfit}`,
+                `Average Trade Profit: ${reportData.avgTradeProfit}`,
+                `Max Win: ${reportData.maxWin}`,
+                `Max Loss: ${reportData.maxLoss}`,
+                `Average Risk:Reward: ${reportData.avgRiskReward}`,
+                `Profit Factor: ${reportData.profitFactor}`
+            ];
+
+            metrics.forEach(m => {
+                doc.text(m, leftMargin, y, { align: "left" });
+                y += 14;
+            });
+
+            y += 10;
+            doc.line(leftMargin, y, rightMargin, y);
+            y += 30;
+
+            // 4) Loan Eligibility
+            doc.setFont("times", "bold");
+            doc.setFontSize(12);
+            doc.text("2. Loan Eligibility", leftMargin, y);
+            y += 20;
+
+            doc.setFont("times", "normal");
+            doc.setFontSize(11);
+
+            // Break eligibility text into lines
+            const eligibilityLines = doc.splitTextToSize(reportData.eligibility, maxTextWidth);
+            eligibilityLines.forEach(line => {
+                doc.text(line, leftMargin, y, { align: "left" });
+                y += 14;
+            });
+            y += 20;
+
+            // 5) Final Disclaimer
+            doc.setFont("times", "italic");
+            doc.setFontSize(10);
+            const finalDisclaimer = `Note: This assessment is provided without warranty of any kind.
+          Performance metrics and loan eligibility are subject to change based on actual
+          financial data, lending policies, and market conditions. Please retain this document
+          for reference, and always consult with certified professionals for legally binding
+          advice or credit decisions.`;
+
+            const finalLines = doc.splitTextToSize(finalDisclaimer, maxTextWidth);
+            finalLines.forEach(line => {
+                doc.text(line, leftMargin, y, { align: "left" });
+                y += 12;
+            });
+            y += 20;
+
+            // Save the PDF
+            doc.save("trading_report.pdf");
+        }
+
+
+    </script>
+</body>
+
+</html>

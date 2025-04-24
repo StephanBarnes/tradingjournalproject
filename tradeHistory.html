@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trade History</title>
+    <link rel="stylesheet" href="sidebar.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #191818;
+            color: white;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .dashboard-main {
+            flex: 1;
+            padding: 2rem;
+            margin-left: 260px;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .sidebar.open~.dashboard-main {
+                margin-left: 260px;
+            }
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background-color: #292828;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #444;
+        }
+
+        th {
+            background-color: #1a3b80;
+        }
+
+        tr:hover {
+            background-color: #1f1f1f;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <div id="sidebar-container"></div>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div style="display: flex; align-items: center;">
+                    <button class="hamburger" id="hamburgerBtn">
+                        <span></span><span></span><span></span>
+                    </button>
+                    <h2 style="margin-left: 1rem;">Trade History</h2>
+                </div>
+            </header>
+
+            <table style="margin-left: 1rem;">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Risk:Reward</th>
+                        <th>Chart</th>
+                        <th>Outcome</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr>
+                        <td colspan="6">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+    </div>
+
+    <script>
+        fetch("sidebar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
+
+                // 🔐 Token Check
+                const token = localStorage.getItem("token");
+                if (!token) return window.location.href = "login.html";
+
+                // 🧠 Sidebar logic (username, pic, logout)
+                fetch("http://localhost:5001/api/profile", {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+                    .then(res => res.json())
+                    .then(user => {
+                        if (user.profilePicture) {
+                            document.getElementById("sidebarPic").src = `http://localhost:5001/uploads/${user.profilePicture}`;
+                        }
+                        document.getElementById("sidebarName").textContent = user.username || "Trader";
+
+                        const logoutBtn = document.getElementById("logoutBtn");
+                        if (logoutBtn) {
+                            logoutBtn.addEventListener("click", () => {
+                                localStorage.removeItem("token");
+                                alert("Logged out successfully!");
+                                window.location.href = "index.html";
+                            });
+                        }
+                    });
+
+                // ✅ Fix: Attach listener to "Import Trade" after sidebar is injected
+                const openTradeModalBtn = document.getElementById("openTradeModal");
+                if (openTradeModalBtn) {
+                    openTradeModalBtn.addEventListener("click", () => {
+                        editingTradeId = null;
+                        document.getElementById("modalTitle").textContent = "Add Trade";
+                        clearModalFields();
+                        document.getElementById("tradeModal").style.display = "flex";
+                    });
+                }
+
+                // ✅ Optional: Close Modal Handler (also safe here)
+                const closeModalBtn = document.getElementById("closeTradeModal");
+                if (closeModalBtn) {
+                    closeModalBtn.addEventListener("click", () => {
+                        document.getElementById("tradeModal").style.display = "none";
+                    });
+                }
+
+                // ✅ Sidebar hamburger toggle
+                const hamburger = document.getElementById("hamburgerBtn");
+                const sidebar = document.getElementById("sidebar");
+                if (hamburger && sidebar) {
+                    hamburger.addEventListener("click", () => sidebar.classList.toggle("open"));
+                }
+            });
+
+        async function loadTradeHistory() {
+            const token = localStorage.getItem("token");
+            if (!token) return window.location.href = "login.html";
+
+            try {
+                const res = await fetch("http://localhost:5001/api/trades", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const trades = await res.json();
+                const tableBody = document.getElementById("historyTableBody");
+
+                if (!trades.length) {
+                    tableBody.innerHTML = "<tr><td colspan='6'>No trades found.</td></tr>";
+                    return;
+                }
+
+                tableBody.innerHTML = "";
+                trades.forEach(trade => {
+                    const dateFormatted = new Date(trade.date).toLocaleDateString("en-GB");
+                    const row = `
+            <tr>
+              <td>${trade.symbol}</td>
+              <td>${dateFormatted}</td>
+              <td>${trade.time}</td>
+              <td>${trade.riskToReward}</td>
+              <td><a href="${trade.chartURL}" target="_blank">View</a></td>
+              <td>${trade.winLoss}</td>
+            </tr>
+          `;
+                    tableBody.innerHTML += row;
+                });
+            } catch (err) {
+                console.error("❌ Failed to load trade history", err);
+                document.getElementById("historyTableBody").innerHTML =
+                    "<tr><td colspan='6' style='color: red;'>Error loading trades.</td></tr>";
+            }
+        }
+
+        window.onload = loadTradeHistory;
+    </script>
+</body>
+
+</html>

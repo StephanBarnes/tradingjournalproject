@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Feature</title>
+    <link rel="stylesheet" href="sidebar.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #191818;
+            color: white;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .dashboard-main {
+            flex: 1;
+            padding: 2rem;
+            margin-left: 260px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .sidebar.open~.dashboard-main {
+                margin-left: 260px;
+            }
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+        }
+
+        .table-container {
+            background-color: #292828;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .table-container input,
+        .table-container button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            margin-top: 10px;
+        }
+
+        .table-container button {
+            background-color: #536dfd;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .table-container button:hover {
+            background-color: #405bdb;
+        }
+
+        .table-container h3,
+        .table-container h4 {
+            margin-top: 20px;
+        }
+
+        hr {
+            border: 1px solid #444;
+            margin: 30px 0;
+        }
+
+        #manualPrediction,
+        #csvTrainStatus,
+        #mongoTrainStatus {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .prediction-card {
+            background-color: #1a3b80;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div style="display:flex; align-items:center;">
+                    <button class="hamburger" id="hamburgerBtn">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h2>AI Trade Prediction</h2>
+                </div>
+            </header>
+
+            <section class="table-container">
+                <h3>Predict Trade Outcome</h3>
+                <input type="number" id="manualRiskReward" placeholder="e.g. 2.5" />
+                <button onclick="predictManual()">🔮 Predict Outcome</button>
+                <div id="manualPrediction" style="display: none;"></div>
+
+                <hr />
+                <h4>Train Model with CSV</h4>
+                <input type="file" id="csvFile" accept=".csv" />
+                <button onclick="trainModelCSV()">📊 Train Model</button>
+                <div id="csvTrainStatus"></div>
+
+                <hr />
+                <h4>Train with Your Trade History</h4>
+                <button onclick="trainModelMongo()">🧠 Train on History</button>
+                <div id="mongoTrainStatus"></div>
+
+                <hr />
+                <h4>Next 7 Trade Predictions</h4>
+                <div id="predictionList">
+                    <p>Loading predictions...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        fetch("sidebar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("sidebar-container").innerHTML = html;
+
+                // 🔐 Token Check
+                const token = localStorage.getItem("token");
+                if (!token) return window.location.href = "login.html";
+
+                // 🧠 Sidebar logic (username, pic, logout)
+                fetch("http://localhost:5001/api/profile", {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+                    .then(res => res.json())
+                    .then(user => {
+                        if (user.profilePicture) {
+                            document.getElementById("sidebarPic").src = `http://localhost:5001/uploads/${user.profilePicture}`;
+                        }
+                        document.getElementById("sidebarName").textContent = user.username || "Trader";
+
+                        const logoutBtn = document.getElementById("logoutBtn");
+                        if (logoutBtn) {
+                            logoutBtn.addEventListener("click", () => {
+                                localStorage.removeItem("token");
+                                alert("Logged out successfully!");
+                                window.location.href = "index.html";
+                            });
+                        }
+                    });
+
+                // ✅ Fix: Attach listener to "Import Trade" after sidebar is injected
+                const openTradeModalBtn = document.getElementById("openTradeModal");
+                if (openTradeModalBtn) {
+                    openTradeModalBtn.addEventListener("click", () => {
+                        editingTradeId = null;
+                        document.getElementById("modalTitle").textContent = "Add Trade";
+                        clearModalFields();
+                        document.getElementById("tradeModal").style.display = "flex";
+                    });
+                }
+
+                // ✅ Optional: Close Modal Handler (also safe here)
+                const closeModalBtn = document.getElementById("closeTradeModal");
+                if (closeModalBtn) {
+                    closeModalBtn.addEventListener("click", () => {
+                        document.getElementById("tradeModal").style.display = "none";
+                    });
+                }
+
+                // ✅ Sidebar hamburger toggle
+                const hamburger = document.getElementById("hamburgerBtn");
+                const sidebar = document.getElementById("sidebar");
+                if (hamburger && sidebar) {
+                    hamburger.addEventListener("click", () => sidebar.classList.toggle("open"));
+                }
+            });
+
+    </script>
+
+    <script>
+
+        async function predictManual() {
+            const rr = document.getElementById("manualRiskReward").value;
+            const res = await fetch("http://localhost:5001/api/ai/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ riskToReward: rr })
+            });
+            const data = await res.json();
+            const resultDiv = document.getElementById("manualPrediction");
+            resultDiv.style.display = "block";
+            resultDiv.textContent = `📈 Outcome: ${data.outcome} (${(data.probability * 100).toFixed(1)}%)`;
+        }
+
+        async function trainModelMongo() {
+            try {
+                document.getElementById("mongoTrainStatus").textContent = "Training model...";
+                const res = await fetch("http://localhost:5001/api/ai/train/mongo", { method: "POST" });
+
+                if (!res.ok) throw new Error("Training failed");
+
+                const data = await res.json();
+                document.getElementById("mongoTrainStatus").textContent = data.message || "✅ Training Complete!";
+                setTimeout(loadSequencePredictions, 2000);
+            } catch (err) {
+                document.getElementById("mongoTrainStatus").textContent = "❌ Training failed. Check backend logs.";
+                console.error("Training error:", err);
+            }
+        }
+
+        async function trainModelCSV() {
+            const file = document.getElementById("csvFile").files[0];
+            if (!file) return alert("Please upload a CSV file.");
+            const formData = new FormData();
+            formData.append("file", file);
+            document.getElementById("csvTrainStatus").textContent = "Uploading and training...";
+            const res = await fetch("http://localhost:5001/api/ai/train/csv", {
+                method: "POST",
+                body: formData
+            });
+            const data = await res.json();
+            document.getElementById("csvTrainStatus").textContent = data.message || "✅ CSV Training Complete!";
+            loadSequencePredictions();
+        }
+
+        async function loadSequencePredictions() {
+            try {
+                const res = await fetch("http://localhost:5001/api/ai/predict/sequence");
+                const data = await res.json();
+                const predictions = data.predictions || [];
+                const list = document.getElementById("predictionList");
+
+                if (predictions.length === 0) {
+                    list.innerHTML = "<p>No predictions available.</p>";
+                    return;
+                }
+
+                list.innerHTML = predictions.map(p => `
+          <div class="prediction-card">
+            <strong>Trade #${p.tradeNumber}:</strong> ${p.prediction > 0.5 ? "✅ Likely Win" : "❌ Likely Loss"} 
+            <span style="float:right;">${(p.prediction * 100).toFixed(2)}%</span>
+          </div>
+        `).join("");
+            } catch (err) {
+                document.getElementById("predictionList").innerHTML = "<p style='color: red;'>❌ Error fetching predictions.</p>";
+                console.error("Prediction error:", err);
+            }
+        }
+        window.onload = loadSequencePredictions;
+    </script>
+</body>
+
+</html>

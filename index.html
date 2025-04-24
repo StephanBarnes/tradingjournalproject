@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trading Journal | Home</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #536dfd;
+      --secondary: #1f1f1f;
+      --bg: #191818;
+      --text-light: #bbb;
+      --white: #fff;
+      --accent: #28a745;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--white);
+      line-height: 1.6;
+    }
+
+    header {
+      background-color: var(--secondary);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      border-bottom: 1px solid #333;
+    }
+
+    header .logo {
+      font-weight: bold;
+      font-size: 1.4rem;
+    }
+
+    header nav a {
+      color: var(--white);
+      text-decoration: none;
+      margin-left: 2rem;
+      font-weight: 500;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 6rem 2rem;
+      background: linear-gradient(to bottom right, #0e1d44, #1a3b80);
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--text-light);
+      max-width: 700px;
+      margin: 0 auto 2rem;
+    }
+
+    .hero button {
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      background-color: var(--primary);
+      border: none;
+      color: var(--white);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    section {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    section h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .feature-box {
+      background-color: var(--secondary);
+      padding: 2rem;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+
+    .feature-box:hover {
+      transform: translateY(-5px);
+    }
+
+    .feature-box i {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+
+    .pricing-cards {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .pricing-card {
+      background-color: var(--secondary);
+      padding: 2rem;
+      width: 300px;
+      border-radius: 10px;
+      border: 1px solid #333;
+    }
+
+    .pricing-card h3 {
+      margin-bottom: 1rem;
+    }
+
+    .pricing-card p {
+      font-size: 0.95rem;
+      color: var(--text-light);
+    }
+
+    .pricing-card ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 1rem;
+    }
+
+    .pricing-card ul li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .pricing-card button {
+      margin-top: 1.5rem;
+      padding: 0.8rem 1.2rem;
+      background: var(--primary);
+      border: none;
+      border-radius: 6px;
+      color: var(--white);
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .testimonials {
+      background-color: #101010;
+    }
+
+    .testimonial-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+
+    .testimonial-card {
+      background-color: var(--secondary);
+      padding: 1.5rem;
+      border-radius: 10px;
+      width: 250px;
+      text-align: left;
+    }
+
+    .testimonial-card img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 1rem;
+    }
+
+    .testimonial-card h4 {
+      margin: 0.5rem 0 0.2rem;
+    }
+
+    .cta-section {
+      background: linear-gradient(to right, #1f1f1f, #0e1d44);
+      padding: 4rem 2rem;
+    }
+
+    .cta-section h2 {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .cta-section button {
+      margin-top: 1.5rem;
+      padding: 1rem 2rem;
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .footer {
+      background-color: #121212;
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .footer-logo {
+      margin-bottom: 20px;
+    }
+
+    .footer-logo img {
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .footer-links,
+    .footer-policy {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      margin: 10px 0;
+    }
+
+    .footer-links a,
+    .footer-policy a {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      transition: color 0.3s;
+    }
+
+    .footer-links a:hover,
+    .footer-policy a:hover {
+      color: #999;
+    }
+
+    .footer-divider {
+      width: 90%;
+      margin: 30px auto;
+      border: 1px solid white;
+    }
+
+    .footer-credits {
+      font-size: 15px;
+      margin-bottom: 10px;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      header nav {
+        display: none;
+      }
+
+      .testimonial-grid {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">Trade Journal</div>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="login.html">Log In</a>
+      <a href="signup.html">Get Started</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>The Only Tool You Need to Become Profitable</h1>
+    <p>Track your trades, discover your strengths, and become a better trader with powerful analytics and journaling.
+    </p>
+    <button onclick="window.location.href='signup.html'">Get Started Now</button>
+  </section>
+
+  <section class="features" id="features">
+    <h2>Platform Features</h2>
+    <div class="features-grid">
+      <div class="feature-box" data-aos="fade-up"><i class="fas fa-chart-line"></i>
+        <h3>Analytics</h3>
+        <p>Track and visualize trade performance.</p>
+      </div>
+      <div class="feature-box" data-aos="fade-up"><i class="fas fa-book"></i>
+        <h3>Notebook</h3>
+        <p>Keep detailed trade notes and reflections.</p>
+      </div>
+      <div class="feature-box" data-aos="fade-up"><i class="fas fa-list-check"></i>
+        <h3>Reporting</h3>
+        <p>Generate insightful reports automatically.</p>
+      </div>
+      <div class="feature-box" data-aos="fade-up"><i class="fas fa-wrench"></i>
+        <h3>Backtesting</h3>
+        <p>Test strategies across historical data.</p>
+      </div>
+      <div class="feature-box" data-aos="fade-up"><i class="fas fa-play-circle"></i>
+        <h3>Replay</h3>
+        <p>Revisit trade setups and performance.</p>
+      </div>
+      <div class="feature-box" data-aos="fade-up"><i class="fas fa-graduation-cap"></i>
+        <h3>Education</h3>
+        <p>Learn from tutorials and webinars.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing" id="pricing">
+    <h2>Pricing Plans</h2>
+    <div class="pricing-cards">
+      <div class="pricing-card" data-aos="zoom-in">
+        <h3>Starter</h3>
+        <p>Perfect for new traders</p>
+        <ul>
+          <li>100 Trades</li>
+          <li>Basic Stats</li>
+          <li>Notebook</li>
+        </ul>
+        <button>Free</button>
+      </div>
+      <div class="pricing-card" data-aos="zoom-in">
+        <h3>Pro</h3>
+        <p>For active traders</p>
+        <ul>
+          <li>Unlimited Trades</li>
+          <li>Full Analytics</li>
+          <li>Backtesting</li>
+        </ul>
+        <button>$19.99/month</button>
+      </div>
+      <div class="pricing-card" data-aos="zoom-in">
+        <h3>Elite</h3>
+        <p>For serious professionals</p>
+        <ul>
+          <li>All Features</li>
+          <li>Replay Tools</li>
+          <li>Priority Support</li>
+        </ul>
+        <button>$29.99/month</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="testimonials">
+    <h2>Trusted by Top Traders</h2>
+    <div class="testimonial-grid">
+      <div class="testimonial-card" data-aos="fade-right">
+        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Trader A">
+        <h4>Vincent Desiano</h4>
+        <p>@options_insider</p>
+        <p>"This journal gave me the clarity I needed. My trading has never been more consistent."</p>
+      </div>
+      <div class="testimonial-card" data-aos="fade-up">
+        <img src="https://randomuser.me/api/portraits/women/45.jpg" alt="Trader B">
+        <h4>Victoria Duke</h4>
+        <p>@tori.trades</p>
+        <p>"I love the backtesting and analytics! The replay feature changed how I review trades."</p>
+      </div>
+      <div class="testimonial-card" data-aos="fade-left">
+        <img src="https://randomuser.me/api/portraits/men/76.jpg" alt="Trader C">
+        <h4>Umar Ashraf</h4>
+        <p>@umarashraftrades</p>
+        <p>"If you're not using this platform, you're behind. Period."</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section" data-aos="fade-up">
+    <h2>Ready to become a profitable trader?</h2>
+    <p>Join thousands of traders leveling up their game with Trade Journal.</p>
+    <button onclick="window.location.href='signup.html'">Start Now</button>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-logo">
+      <img src="public/icon%20(4)-200h.png" alt="Trading Journal Logo" />
+    </div>
+    <div class="footer-links">
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Features</a>
+      <a href="#">Pricing</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="footer-divider"></div>
+    <div class="footer-policy">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Cookies</a>
+    </div>
+    <div class="footer-credits">© 2025 Trade Journal. All rights reserved.</div>
+  </footer>
+
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: 1000,
+      once: true,
+    });
+  </script>
+
+</body>
+
+</html>

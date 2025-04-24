@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile</title>
+    <link rel="stylesheet" href="sidebar.css" />
+    <style>
+        /* Your existing styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #191818;
+            color: white;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .dashboard-main {
+            flex: 1;
+            padding: 2rem;
+            margin-left: 260px;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .sidebar.open~.dashboard-main {
+                margin-left: 260px;
+            }
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+        }
+
+        .profile-card {
+            background: #292828;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .profile-card h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-avatar {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .profile-avatar img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #536dfd;
+        }
+
+        .profile-avatar input {
+            margin-top: 10px;
+        }
+
+        .profile-info label,
+        .change-password label {
+            display: block;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        .profile-info input,
+        .change-password input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: none;
+            background-color: #1f1f1f;
+            color: white;
+        }
+
+        .profile-info input:disabled {
+            opacity: 0.6;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #536dfd;
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            border-radius: 8px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .save-btn:hover {
+            background-color: #405bdb;
+        }
+
+        .change-password {
+            margin-top: 30px;
+            border-top: 1px solid #444;
+            padding-top: 20px;
+        }
+
+        .change-password h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: #ddd;
+        }
+
+        .stats {
+            margin-top: 30px;
+            background: #1f1f1f;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stats p {
+            margin: 5px 0;
+            color: #bbb;
+        }
+
+        .twofa-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .twofa-btn.enabled {
+            background-color: #28a745;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <div id="sidebar-container"></div>
+
+        <script>
+            fetch("sidebar.html")
+                .then(res => res.text())
+                .then(html => {
+                    // Inject sidebar into container
+                    document.getElementById("sidebar-container").innerHTML = html;
+
+                    // Sidebar hamburger logic
+                    const hamburger = document.getElementById("hamburgerBtn");
+                    const sidebar = document.getElementById("sidebar");
+                    if (hamburger && sidebar) {
+                        hamburger.addEventListener("click", () => {
+                            sidebar.classList.toggle("open");
+                        });
+                    }
+
+                    // Token and user profile
+                    const token = localStorage.getItem("token");
+                    if (!token) return window.location.href = "login.html";
+
+                    fetch("http://localhost:5001/api/profile", {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                        .then(res => res.json())
+                        .then(user => {
+                            if (user.profilePicture) {
+                                document.getElementById("sidebarPic").src = `http://localhost:5001/uploads/${user.profilePicture}`;
+                            }
+                            document.getElementById("sidebarName").textContent = user.username || "Trader";
+
+                            const logoutBtn = document.getElementById("logoutBtn");
+                            if (logoutBtn) {
+                                logoutBtn.addEventListener("click", () => {
+                                    localStorage.removeItem("token");
+                                    alert("Logged out successfully!");
+                                    window.location.href = "index.html";
+                                });
+                            }
+                        })
+                        .catch(err => console.error("Sidebar profile fetch error:", err.message));
+                });
+        </script>
+
+
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div style="display: flex; align-items: center;">
+                    <button class="hamburger" id="hamburgerBtn">
+                        <span></span><span></span><span></span>
+                    </button>
+                    <h2 style="margin-left: 1rem;">My Profile</h2>
+                </div>
+            </header>
+
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <img id="profilePic" src="usericon.png" alt="User Avatar">
+                    <input type="file" accept="image/*" onchange="uploadProfilePicture(event)">
+                </div>
+
+                <div class="profile-info">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" disabled />
+
+                    <label for="email">Email</label>
+                    <input type="email" id="email" disabled />
+
+                    <label for="registered">Registered On</label>
+                    <input type="text" id="registered" disabled />
+
+                    <button id="toggle2FA" class="twofa-btn">Enable 2FA</button>
+                </div>
+
+                <div class="stats">
+                    <p><strong>Total Trades:</strong> 0</p>
+                    <p><strong>Win Rate:</strong> 0%</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("token");
+        if (!token) window.location.href = "login.html";
+
+        async function fetchProfile() {
+            try {
+                // Fetch profile data
+                const res = await fetch("http://localhost:5001/api/profile", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error("Profile not found");
+                const user = await res.json();
+
+                document.getElementById("username").value = user.username;
+                document.getElementById("email").value = user.email;
+                document.getElementById("registered").value = new Date(user.createdAt).toLocaleDateString();
+                document.getElementById("profilePic").src = user.profilePicture
+                    ? `http://localhost:5001/uploads/${user.profilePicture}`
+                    : "usericon.png";
+
+                const twofaBtn = document.getElementById("toggle2FA");
+                if (user.twoFactorEnabled) {
+                    twofaBtn.classList.add("enabled");
+                    twofaBtn.textContent = "Disable 2FA";
+                } else {
+                    twofaBtn.classList.remove("enabled");
+                    twofaBtn.textContent = "Enable 2FA";
+                }
+
+                // Fetch trades for stats
+                const tradeRes = await fetch("http://localhost:5001/api/trades", {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (!tradeRes.ok) throw new Error("Could not fetch trades");
+                const trades = await tradeRes.json();
+
+                const totalTrades = trades.length;
+                const totalWins = trades.filter(t => t.winLoss === "Win").length;
+                const winRate = totalTrades > 0 ? ((totalWins / totalTrades) * 100).toFixed(2) : "0";
+
+                document.querySelector(".stats").innerHTML = `
+                    <p><strong>Total Trades:</strong> ${totalTrades}</p>
+                    <p><strong>Win Rate:</strong> ${winRate}%</p>
+                `;
+
+            } catch (err) {
+                console.error("🚨 Error loading profile or trades:", err.message);
+            }
+        }
+
+        async function uploadProfilePicture(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append("profilePic", file);
+
+            try {
+                await fetch("http://localhost:5001/api/profile/picture", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: formData
+                });
+                fetchProfile(); // Refresh
+            } catch (err) {
+                console.error("🚨 Upload failed:", err.message);
+            }
+        }
+
+        document.getElementById("toggle2FA").addEventListener("click", async () => {
+            try {
+                await fetch("http://localhost:5001/api/profile/twofa", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                fetchProfile();
+            } catch (err) {
+                console.error("🚨 2FA error:", err.message);
+            }
+        });
+
+        window.onload = fetchProfile;
+    </script>
+
+
+</body>
+
+</html>

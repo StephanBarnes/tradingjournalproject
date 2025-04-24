@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trade Data Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link rel="stylesheet" href="sidebar.css" />
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #191818;
+            color: white;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .dashboard-main {
+            flex: 1;
+            padding: 2rem;
+            margin-left: 260px;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-main {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .sidebar.open~.dashboard-main {
+                margin-left: 260px;
+            }
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-right: 1rem;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-start;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: white;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+        }
+
+        .analyzer-container {
+            background: #292828;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .analyzer-container h1 {
+            text-align: center;
+            margin: 0 0 1rem;
+            font-weight: normal;
+            color: #ddd;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .upload-section input[type="file"] {
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        #analyzeBtn {
+            padding: 0.75rem 1.5rem;
+            background-color: #536dfd;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #analyzeBtn:hover {
+            background-color: #405bdb;
+        }
+
+        .results,
+        .predictions,
+        .optimization {
+            margin-top: 20px;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            background: #1f1f1f;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .results h2,
+        .predictions h2,
+        .optimization h2 {
+            margin: 0 0 0.75rem;
+            font-weight: normal;
+            font-size: 1.3rem;
+            color: #ccc;
+        }
+
+        .results table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .results th,
+        .results td {
+            padding: 10px;
+            border-bottom: 1px solid #444;
+        }
+
+        .results th {
+            text-align: left;
+            background-color: #1a3b80;
+            color: #fff;
+            font-weight: 500;
+            width: 50%;
+        }
+
+        .results td,
+        #predictionText,
+        #optimizationText {
+            color: #ccc;
+            margin: 0;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="dashboard-main" id="dashboardMain">
+            <header class="dashboard-header">
+                <div style="display:flex; align-items:center;">
+                    <button class="hamburger" id="hamburgerBtn">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h2 style="margin:0;">Trade Data Analyzer</h2>
+                </div>
+            </header>
+
+            <div class="analyzer-container">
+                <h1>Trade Data Analyzer</h1>
+                <div class="upload-section">
+                    <input type="file" id="csvFileInput" accept=".csv" /><br />
+                    <button id="analyzeBtn">Analyze Data</button>
+                </div>
+
+                <div class="results" id="resultsSection" style="display:none;">
+                    <h2>Analysis Results</h2>
+                    <table>
+                        <tr>
+                            <th>Total Trades</th>
+                            <td id="totalTrades">-</td>
+                        </tr>
+                        <tr>
+                            <th>Wins</th>
+                            <td id="wins">-</td>
+                        </tr>
+                        <tr>
+                            <th>Losses</th>
+                            <td id="losses">-</td>
+                        </tr>
+                        <tr>
+                            <th>Win Rate</th>
+                            <td id="winRate">-</td>
+                        </tr>
+                        <tr>
+                            <th>Average Trade Profit</th>
+                            <td id="avgProfit">-</td>
+                        </tr>
+                        <tr>
+                            <th>Average Risk:Reward</th>
+                            <td id="avgRiskReward">-</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="predictions" id="predictionsSection" style="display:none;">
+                    <h2>Trade Outcome Prediction</h2>
+                    <p id="predictionText">-</p>
+                </div>
+
+                <div class="optimization" id="optimizationSection" style="display:none;">
+                    <h2>Optimization Advice</h2>
+                    <p id="optimizationText">-</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Inject sidebar + attach event listeners -->
+    <script>
+        fetch('sidebar.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('sidebar-container').innerHTML = html;
+
+                const sidebar = document.getElementById("sidebar");
+                const hamburgerBtn = document.getElementById("hamburgerBtn");
+                hamburgerBtn?.addEventListener("click", () => {
+                    sidebar.classList.toggle("open");
+                });
+
+                const logoutBtn = document.getElementById("logoutBtn");
+                logoutBtn?.addEventListener("click", () => {
+                    localStorage.removeItem("token");
+                    alert("Logged out successfully!");
+                    window.location.href = "index.html";
+                });
+            });
+    </script>
+
+    <script>
+        // CSV parser logic
+        document.getElementById("analyzeBtn").addEventListener("click", function () {
+            const fileInput = document.getElementById("csvFileInput");
+            if (!fileInput.files.length) {
+                alert("Please upload a CSV file first.");
+                return;
+            }
+            const file = fileInput.files[0];
+
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: true,
+                complete: function (results) {
+                    analyzeTradeData(results.data);
+                },
+                error: function (err) {
+                    console.error("Error parsing CSV:", err);
+                    alert("Error parsing CSV file.");
+                }
+            });
+        });
+
+        function analyzeTradeData(trades) {
+            trades = trades.filter(trade => trade.Symbol);
+            const totalTrades = trades.length;
+            const wins = trades.filter(t => t.Outcome === "Win");
+            const losses = trades.filter(t => t.Outcome === "Loss");
+            const winRate = totalTrades > 0 ? (wins.length / totalTrades) * 100 : 0;
+
+            const tradeProfits = trades.map(t => (t.Outcome === "Win") ? t["Risk:Reward"] : -t["Risk:Reward"]);
+            const avgProfit = tradeProfits.reduce((a, b) => a + (b || 0), 0) / totalTrades || 0;
+            const avgRiskReward = trades.reduce((a, t) => a + (t["Risk:Reward"] || 0), 0) / totalTrades || 0;
+
+            document.getElementById("totalTrades").textContent = totalTrades;
+            document.getElementById("wins").textContent = wins.length;
+            document.getElementById("losses").textContent = losses.length;
+            document.getElementById("winRate").textContent = winRate.toFixed(2) + "%";
+            document.getElementById("avgProfit").textContent = "$" + avgProfit.toFixed(2);
+            document.getElementById("avgRiskReward").textContent = avgRiskReward.toFixed(2);
+
+            document.getElementById("resultsSection").style.display = "block";
+            document.getElementById("predictionsSection").style.display = "block";
+            document.getElementById("optimizationSection").style.display = "block";
+
+            document.getElementById("predictionText").textContent =
+                `Based on your historical win rate of ${winRate.toFixed(2)}%, there's roughly a ${winRate.toFixed(2)}% chance your next trade will be a winner.`;
+
+            document.getElementById("optimizationText").textContent =
+                `${avgRiskReward < 1.5 ? "Your risk-to-reward ratio is low. Consider adjusting your stop-loss or targets. " : "Your risk-to-reward ratio appears healthy. "}` +
+                `${winRate < 50 ? "Your win rate is below average. Review your strategy." : "Your win rate is above average. Keep refining your edge."}`;
+        }
+    </script>
+</body>
+
+</html>
