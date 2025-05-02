@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // Adjust the path if needed
+const User = require('../models/User');
 
 exports.protect = async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -12,24 +12,21 @@ exports.protect = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log('🔑 Decoded token:', decoded);
+        console.log('Decoded token:', decoded);
 
-        // Ensure the decoded ID is valid and fetch the user
         const user = await User.findById(decoded.userId).select('-password');
 
         if (!user) {
-            console.log("❌ User not found in the database!");
+            console.log("User not found in the database!");
             return res.status(401).json({ message: 'User not found' });
         }
 
-        console.log('✅ User authenticated:', user);
-
-        // Attach the FULL user object to the request
+        console.log('User authenticated:', user);
         req.user = user;
 
         next();
     } catch (error) {
-        console.error('❌ Error decoding token:', error.message);
+        console.error('Error decoding token:', error.message);
         return res.status(401).json({ message: 'Invalid token' });
     }
 };

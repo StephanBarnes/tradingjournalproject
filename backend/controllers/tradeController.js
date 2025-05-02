@@ -1,6 +1,6 @@
 const Trade = require('../models/Trade');
 
-// Add a Trade
+// Add a trade
 const addTrade = async (req, res) => {
     try {
         console.log("🔹 Incoming Trade Data:", req.body);
@@ -19,15 +19,15 @@ const addTrade = async (req, res) => {
         }
 
         const trade = new Trade({
-            user: req.user._id,  // Ensure the correct field is used from token middleware
+            user: req.user._id,
             symbol,
             date,
             time,
             riskToReward,
-            maxRiskToReward: maxRiskToReward || null, // Optional field
+            maxRiskToReward: maxRiskToReward || null,
             chartURL,
             winLoss,
-            notes: notes || "", // Default empty string if no notes provided
+            notes: notes || "",
         });
 
         const savedTrade = await trade.save();
@@ -39,7 +39,7 @@ const addTrade = async (req, res) => {
     }
 };
 
-// Get All Trades for a User
+// Get all trades for a user
 const getTrades = async (req, res) => {
     try {
         console.log("📤 Fetching trades for User ID:", req.user._id);
@@ -64,4 +64,67 @@ const getTrades = async (req, res) => {
     }
 };
 
-module.exports = { addTrade, getTrades };
+// DELETE a trade
+const deleteTrade = async (req, res) => {
+    try {
+        console.log("🗑 Deleting trade ID:", req.params.id);
+
+        if (!req.user || !req.user._id) {
+            console.error("❌ User ID missing in request.");
+            return res.status(401).json({ message: "User authentication failed." });
+        }
+
+        const trade = await Trade.findById(req.params.id);
+
+        if (!trade) {
+            console.log("⚠️ Trade not found.");
+            return res.status(404).json({ message: "Trade not found" });
+        }
+
+        // Check if the trade belongs to the current user
+        if (trade.user.toString() !== req.user._id.toString()) {
+            console.log("❌ Unauthorized attempt to delete trade.");
+            return res.status(403).json({ message: "Not authorized to delete this trade" });
+        }
+
+        await trade.deleteOne();
+
+        console.log("✅ Trade deleted successfully");
+        res.json({ success: true, message: "Trade deleted successfully" });
+    } catch (error) {
+        console.error("❌ Error deleting trade:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+// Update a Trade
+const updateTrade = async (req, res) => {
+    try {
+        const trade = await Trade.findById(req.params.id);
+
+        if (!trade) {
+            return res.status(404).json({ message: "Trade not found" });
+        }
+
+        // Check if the trade belongs to the current user
+        if (trade.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Not authorized to update this trade" });
+        }
+
+        // Update fields
+        trade.symbol = req.body.symbol || trade.symbol;
+        trade.date = req.body.date || trade.date;
+        trade.time = req.body.time || trade.time;
+        trade.riskToReward = req.body.riskToReward || trade.riskToReward;
+        trade.chartURL = req.body.chartURL || trade.chartURL;
+        trade.winLoss = req.body.winLoss || trade.winLoss;
+
+        const updatedTrade = await trade.save();
+
+        res.json(updatedTrade);
+    } catch (error) {
+        console.error("Error updating trade:", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+module.exports = { addTrade, getTrades, deleteTrade, updateTrade };

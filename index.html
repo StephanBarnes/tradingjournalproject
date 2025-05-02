@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  <link rel="stylesheet" href="footer.css" />
+
   <style>
     :root {
       --primary: #536dfd;
@@ -219,56 +221,7 @@
       cursor: pointer;
     }
 
-    .footer {
-      background-color: #121212;
-      color: white;
-      padding: 40px 20px;
-      text-align: center;
-      font-family: 'Inter', sans-serif;
-    }
 
-    .footer-logo {
-      margin-bottom: 20px;
-    }
-
-    .footer-logo img {
-      height: 40px;
-      object-fit: contain;
-    }
-
-    .footer-links,
-    .footer-policy {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 30px;
-      margin: 10px 0;
-    }
-
-    .footer-links a,
-    .footer-policy a {
-      color: white;
-      text-decoration: none;
-      font-size: 16px;
-      transition: color 0.3s;
-    }
-
-    .footer-links a:hover,
-    .footer-policy a:hover {
-      color: #999;
-    }
-
-    .footer-divider {
-      width: 90%;
-      margin: 30px auto;
-      border: 1px solid white;
-    }
-
-    .footer-credits {
-      font-size: 15px;
-      margin-bottom: 10px;
-      color: white;
-    }
 
     @media (max-width: 768px) {
       header nav {
@@ -397,26 +350,6 @@
     <button onclick="window.location.href='signup.html'">Start Now</button>
   </section>
 
-  <footer class="footer">
-    <div class="footer-logo">
-      <img src="public/icon%20(4)-200h.png" alt="Trading Journal Logo" />
-    </div>
-    <div class="footer-links">
-      <a href="#">Home</a>
-      <a href="#">About</a>
-      <a href="#">Features</a>
-      <a href="#">Pricing</a>
-      <a href="#">Contact</a>
-    </div>
-    <div class="footer-divider"></div>
-    <div class="footer-policy">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">Cookies</a>
-    </div>
-    <div class="footer-credits">© 2025 Trade Journal. All rights reserved.</div>
-  </footer>
-
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script>
     AOS.init({
@@ -426,5 +359,15 @@
   </script>
 
 </body>
+
+<div id="footer-container"></div>
+
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("footer-container").innerHTML = html;
+    });
+</script>
 
 </html>

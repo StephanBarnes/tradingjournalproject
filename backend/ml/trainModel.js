@@ -1,10 +1,8 @@
-// === /ml/trainModel.js ===
 const tf = require('@tensorflow/tfjs-node');
 const fs = require('fs');
 const csv = require('csv-parser');
 const Trade = require('../models/Trade');
 
-// Utility: Prepares dataset for model training
 function preprocessTrades(data) {
     const xs = [], ys = [];
 
@@ -54,9 +52,9 @@ async function trainModel(dataSource = 'mongo', csvPath = '') {
     console.log(`🔍 Starting training on ${dataSource === 'mongo' ? 'MongoDB' : 'CSV'} data...`);
     await model.fit(xs, ys, { epochs: 20, batchSize: 8, verbose: 1 });
 
-    // Save model artifacts
-    await model.save('file://ml/model');
-    console.log('✅ Model trained and saved at /backend/ml/model');
+    // Save model artifacts to the correct path
+    await model.save('file://ml/lstm-model');
+    console.log('✅ Model trained and saved at /backend/ml/lstm-model');
 }
 
 module.exports = trainModel;

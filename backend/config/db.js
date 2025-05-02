@@ -5,7 +5,7 @@ const connectDB = async () => {
     await mongoose.connect("mongodb://admin:password123@127.0.0.1:27017/trading-journal", {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      authSource: "admin", // Authenticate against the admin database
+      authSource: "admin",
     });
     console.log("MongoDB connected successfully");
   } catch (error) {

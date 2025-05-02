@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us - Trade Journal</title>
+    <link rel="stylesheet" href="footer.css" />
+    <style>
+        .layout-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            flex: 1;
+            max-width: 900px;
+            margin: auto;
+            padding: 2rem;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #191818;
+            color: white;
+        }
+
+        .simple-header h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #00bfff;
+        }
+
+        main section {
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        main section h2 {
+            color: #536dfd;
+            margin-top: 2rem;
+        }
+
+        #footer-container {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout-wrapper">
+        <div class="page-container">
+            <h1>About Trade Journal</h1>
+
+            <main>
+                <section>
+                    <p>I created Trade Journal with the goal of simplifying trade tracking. My mission is to empower
+                        traders
+                        with clarity, insight, and smart tools for decision-making.</p>
+                </section>
+
+                <section>
+                    <h2>Our Vision</h2>
+                    <p>Trade Journal exists to redefine how modern traders approach analysis and learning. I believe
+                        that
+                        every trader, whether beginner or experienced, deserves access to clean, actionable data about
+                        their
+                        performance without overcomplication.</p>
+                </section>
+
+                <section>
+                    <h2>What Makes Us Different</h2>
+                    <ul>
+                        <li>I focus on real usability — no bloated features or unnecessary distractions.</li>
+                        <li>The dashboard is designed to be intuitive and mobile-friendly.</li>
+                        <li>I integrated AI-powered tools to help traders review past data and make future decisions
+                            with
+                            confidence.</li>
+                        <li>Every part of the app is made with simplicity, speed, and trader psychology in mind.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Who This Is For</h2>
+                    <p>This platform is for forex, crypto, and indices traders who are tired of manually tracking or
+                        losing
+                        sight of their edge. Whether you're a student balancing studies with trading, or a full-time
+                        trader
+                        refining your strategy, Trade Journal is built to support your growth.</p>
+                </section>
+
+                <section>
+                    <h2>Behind the Project</h2>
+                    <p>I'm Stephan, a trader and student with a passion for systems that drive real growth. I created
+                        Trade
+                        Journal as part of my university final year project — but it's grown far beyond that. I'm
+                        committed
+                        to improving and expanding the features with real feedback from users.</p>
+                </section>
+
+                <section>
+                    <h2>Continuous Development</h2>
+                    <p>This isn’t a one-time build. I’ve structured the project to grow. That includes:</p>
+                    <ul>
+                        <li>Adding deeper analytics and visual insights</li>
+                        <li>Expanding AI capabilities for predictive feedback</li>
+                        <li>Building a community of traders who want to learn, refine, and win together</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Let’s Grow Together</h2>
+                    <p>Trade Journal is more than a tool — it’s a commitment. I’m constantly listening to traders,
+                        learning
+                        from the data, and optimising the platform to help users succeed with confidence. Thank you for
+                        being part of this journey.</p>
+                </section>
+            </main>
+        </div>
+        <div id="footer-container"></div>
+    </div>
+
+    <script>
+        fetch("footer.html")
+            .then(res => res.text())
+            .then(html => document.getElementById("footer-container").innerHTML = html);
+    </script>
+</body>
+
+</html>

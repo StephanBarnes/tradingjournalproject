@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Us - Trade Journal</title>
+    <link rel="stylesheet" href="footer.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #191818;
+            color: white;
+        }
+
+        .layout-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            flex: 1;
+            max-width: 900px;
+            margin: auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00bfff;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        p.description {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            color: #ccc;
+        }
+
+        form {
+            background-color: #292828;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: #1f1f1f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        button {
+            margin-top: 1.5rem;
+            width: 100%;
+            padding: 12px;
+            background-color: #536dfd;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #405bdb;
+        }
+
+        #footer-container {
+            width: 100%;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout-wrapper">
+        <div class="page-container">
+            <h1>Contact Us</h1>
+            <p class="description">Got a question, suggestion or bug to report? I’d love to hear from you.</p>
+
+            <form id="contactForm">
+                <label for="name">Your Name</label>
+                <input type="text" id="name" name="name" required />
+
+                <label for="email">Your Email</label>
+                <input type="email" id="email" name="email" required />
+
+                <label for="message">Your Message</label>
+                <textarea id="message" name="message" required></textarea>
+
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+
+        <div id="footer-container"></div>
+    </div>
+
+    <script>
+        fetch("footer.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("footer-container").innerHTML = html;
+            });
+
+        document.getElementById("contactForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            alert("Thanks for your message! I'll get back to you shortly.");
+            this.reset();
+        });
+    </script>
+</body>
+
+</html>

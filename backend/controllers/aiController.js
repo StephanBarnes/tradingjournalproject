@@ -1,5 +1,4 @@
-// === /controllers/aiController.js ===
-const trainModel = require('../ml/trainModel');
+const trainModel = require('../ml/trainLSTMModel');
 const predictOutcome = require('../ml/predict');
 const predictNext7Trades = require('../ml/predictLSTM');
 
@@ -16,7 +15,7 @@ exports.predictNext7 = async (req, res) => {
 exports.trainFromMongo = async (req, res) => {
     try {
         await trainModel('mongo');
-        res.json({ message: 'Model trained using MongoDB trades ✅' });
+        res.json({ message: 'Model trained using MongoDB trades' });
     } catch (error) {
         console.error('Training error:', error);
         res.status(500).json({ message: 'Error training model' });
@@ -27,7 +26,7 @@ exports.trainFromCSV = async (req, res) => {
     try {
         const csvPath = req.file.path;
         await trainModel('csv', csvPath);
-        res.json({ message: 'Model trained using CSV file ✅' });
+        res.json({ message: 'Model trained using CSV file' });
     } catch (error) {
         console.error('CSV training error:', error);
         res.status(500).json({ message: 'Error training from CSV' });

@@ -7,6 +7,8 @@
     <title>Trade Data Analyzer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link rel="stylesheet" href="sidebar.css" />
+    <link rel="stylesheet" href="footer.css" />
+
 
     <style>
         body {
@@ -28,6 +30,7 @@
             padding: 2rem;
             margin-left: 260px;
             transition: margin-left 0.3s ease;
+            padding-left: 4rem;
         }
 
         @media (max-width: 768px) {
@@ -160,10 +163,65 @@
             margin: 0;
             line-height: 1.4;
         }
+
+        .rr-by-year-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .year-column {
+            background: #1f1f1f;
+            padding: 1rem;
+            border-radius: 10px;
+            min-width: 180px;
+            flex: 1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .year-column:hover {
+            transform: translateY(-5px);
+        }
+
+        .year-column h4 {
+            text-align: center;
+            color: #00bfff;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .year-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+        }
+
+        .year-column ul li {
+            text-align: left;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            padding-left: 10px;
+            position: relative;
+        }
+
+        .year-column ul li::before {
+            content: "➔";
+            position: absolute;
+            left: 0;
+            color: #536dfd;
+        }
     </style>
 </head>
 
-<body>
+<body class="dashboard">
     <div class="dashboard-container">
         <!-- Sidebar -->
         <div id="sidebar-container"></div>
@@ -173,19 +231,24 @@
             <header class="dashboard-header">
                 <div style="display:flex; align-items:center;">
                     <button class="hamburger" id="hamburgerBtn">
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                        <span></span><span></span><span></span>
                     </button>
-                    <h2 style="margin:0;">Trade Data Analyzer</h2>
+                    <h2 style="margin-left: 1rem;">Trade Data Analyzer</h2>
                 </div>
             </header>
 
             <div class="analyzer-container">
                 <h1>Trade Data Analyzer</h1>
+
+                <section style="margin-bottom: 2rem; text-align: center;">
+                    <p>Upload your trading CSV file below to quickly analyse your historical trades. I will help you
+                        uncover your win rates, average profits, risk-to-reward ratios, and give you insights for
+                        improvement.</p>
+                </section>
+
                 <div class="upload-section">
                     <input type="file" id="csvFileInput" accept=".csv" /><br />
-                    <button id="analyzeBtn">Analyze Data</button>
+                    <button id="analyzeBtn">Analyse Data</button>
                 </div>
 
                 <div class="results" id="resultsSection" style="display:none;">
@@ -218,43 +281,95 @@
                     </table>
                 </div>
 
+                <div class="extra-insights" id="extraInsights" style="display:none; margin-top: 2rem;">
+                    <h2 style="text-align:center; color: #536dfd;">Extra Insights</h2>
+                    <table style="width:100%; margin-top:1rem; background:#1f1f1f; border-radius:8px; overflow:hidden;">
+                        <tbody id="extraInsightsTable" style="font-size: 0.95rem;">
+                        </tbody>
+                    </table>
+                    <div id="rrByYear" style="margin-top:2rem;"></div>
+                    <div class="rr-by-year-grid" id="rrByMonthGrid">
+                    </div>
+
+                </div>
+
                 <div class="predictions" id="predictionsSection" style="display:none;">
                     <h2>Trade Outcome Prediction</h2>
                     <p id="predictionText">-</p>
                 </div>
 
                 <div class="optimization" id="optimizationSection" style="display:none;">
-                    <h2>Optimization Advice</h2>
+                    <h2>Optimisation Advice</h2>
                     <p id="optimizationText">-</p>
                 </div>
+
+                <section style="margin-top: 2rem; text-align: center; font-size: 0.95rem; color: #bbb;">
+                    <h3 style="color: #536dfd;">How to Use This Tool</h3>
+                    <ul style="list-style: none; padding: 0; margin-top: 1rem;">
+                        <li>➔ Export your trading history as a CSV from your broker or platform.</li>
+                        <li>➔ Make sure the file includes 'Symbol', 'Outcome', and 'Risk:Reward' columns.</li>
+                        <li>➔ Upload your file and click "Analyse Data" to see instant results.</li>
+                        <li>➔ Review your stats and refine your trading edge.</li>
+                    </ul>
+                </section>
             </div>
         </main>
     </div>
 
-    <!-- Inject sidebar + attach event listeners -->
     <script>
-        fetch('sidebar.html')
+        fetch("sidebar.html")
             .then(res => res.text())
             .then(html => {
-                document.getElementById('sidebar-container').innerHTML = html;
+                document.getElementById("sidebar-container").innerHTML = html;
 
+
+                const hamburger = document.getElementById("hamburgerBtn");
                 const sidebar = document.getElementById("sidebar");
-                const hamburgerBtn = document.getElementById("hamburgerBtn");
-                hamburgerBtn?.addEventListener("click", () => {
-                    sidebar.classList.toggle("open");
+                if (hamburger && sidebar) {
+                    hamburger.addEventListener("click", () => {
+                        sidebar.classList.toggle("open");
+                    });
+                }
+                document.addEventListener("click", (e) => {
+                    const isClickInsideSidebar = sidebar.contains(e.target);
+                    const isClickOnHamburger = hamburgerBtn.contains(e.target);
+
+                    if (!isClickInsideSidebar && !isClickOnHamburger && sidebar.classList.contains("open")) {
+                        sidebar.classList.remove("open");
+                        hamburgerBtn.style.display = "flex";
+                    }
                 });
 
-                const logoutBtn = document.getElementById("logoutBtn");
-                logoutBtn?.addEventListener("click", () => {
-                    localStorage.removeItem("token");
-                    alert("Logged out successfully!");
-                    window.location.href = "index.html";
-                });
+
+                const token = localStorage.getItem("token");
+                if (!token) return window.location.href = "login.html";
+
+
+                fetch("http://localhost:5001/api/profile", {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+                    .then(res => res.json())
+                    .then(user => {
+                        if (user.profilePicture) {
+                            document.getElementById("sidebarPic").src = `http://localhost:5001/uploads/${user.profilePicture}`;
+                        }
+                        document.getElementById("sidebarName").textContent = user.username || "Trader";
+
+
+                        const logoutBtn = document.getElementById("logoutBtn");
+                        if (logoutBtn) {
+                            logoutBtn.addEventListener("click", () => {
+                                localStorage.removeItem("token");
+                                alert("Logged out successfully!");
+                                window.location.href = "index.html";
+                            });
+                        }
+                    })
+                    .catch(err => console.error("Sidebar profile fetch error:", err.message));
             });
     </script>
 
     <script>
-        // CSV parser logic
         document.getElementById("analyzeBtn").addEventListener("click", function () {
             const fileInput = document.getElementById("csvFileInput");
             if (!fileInput.files.length) {
@@ -277,35 +392,121 @@
         });
 
         function analyzeTradeData(trades) {
-            trades = trades.filter(trade => trade.Symbol);
+            trades = trades.filter(trade => trade.Position);
             const totalTrades = trades.length;
-            const wins = trades.filter(t => t.Outcome === "Win");
-            const losses = trades.filter(t => t.Outcome === "Loss");
+            const wins = trades.filter(t => t["W/L"] === "Win");
+            const losses = trades.filter(t => t["W/L"] === "Loss");
             const winRate = totalTrades > 0 ? (wins.length / totalTrades) * 100 : 0;
+            const totalRR = trades.reduce((sum, t) => sum + (parseFloat(t["RR"]) || 0), 0);
+            const avgTradeProfit = totalTrades > 0 ? totalRR / totalTrades : 0;
+            const avgRiskReward = wins.length > 0
+                ? wins.reduce((sum, t) => sum + (parseFloat(t["RR"]) || 0), 0) / wins.length
+                : 0;
 
-            const tradeProfits = trades.map(t => (t.Outcome === "Win") ? t["Risk:Reward"] : -t["Risk:Reward"]);
-            const avgProfit = tradeProfits.reduce((a, b) => a + (b || 0), 0) / totalTrades || 0;
-            const avgRiskReward = trades.reduce((a, t) => a + (t["Risk:Reward"] || 0), 0) / totalTrades || 0;
+            // Calculate win/loss streaks
+            let maxWinStreak = 0, maxLossStreak = 0, currentWinStreak = 0, currentLossStreak = 0;
+            trades.forEach(trade => {
+                if (trade["W/L"] === "Win") {
+                    currentWinStreak++;
+                    maxWinStreak = Math.max(maxWinStreak, currentWinStreak);
+                    currentLossStreak = 0;
+                } else if (trade["W/L"] === "Loss") {
+                    currentLossStreak++;
+                    maxLossStreak = Math.max(maxLossStreak, currentLossStreak);
+                    currentWinStreak = 0;
+                }
+            });
 
+            // RR by Year and by Month
+            const rrByYear = {};
+            const rrByMonth = {};
+            trades.forEach(trade => {
+                const date = new Date(trade.Date);
+                const year = date.getFullYear();
+                const month = date.toLocaleString('default', { month: 'short' });
+
+                rrByYear[year] = (rrByYear[year] || 0) + (parseFloat(trade["RR"]) || 0);
+
+                if (!rrByMonth[year]) rrByMonth[year] = {};
+                rrByMonth[year][month] = (rrByMonth[year][month] || 0) + (parseFloat(trade["RR"]) || 0);
+            });
+
+            // Results
             document.getElementById("totalTrades").textContent = totalTrades;
             document.getElementById("wins").textContent = wins.length;
             document.getElementById("losses").textContent = losses.length;
             document.getElementById("winRate").textContent = winRate.toFixed(2) + "%";
-            document.getElementById("avgProfit").textContent = "$" + avgProfit.toFixed(2);
+            document.getElementById("avgProfit").textContent = avgTradeProfit.toFixed(2);
             document.getElementById("avgRiskReward").textContent = avgRiskReward.toFixed(2);
 
             document.getElementById("resultsSection").style.display = "block";
             document.getElementById("predictionsSection").style.display = "block";
             document.getElementById("optimizationSection").style.display = "block";
+            document.getElementById("extraInsights").style.display = "block";
 
+            // Prediction
             document.getElementById("predictionText").textContent =
                 `Based on your historical win rate of ${winRate.toFixed(2)}%, there's roughly a ${winRate.toFixed(2)}% chance your next trade will be a winner.`;
 
+            // Optimisation
             document.getElementById("optimizationText").textContent =
-                `${avgRiskReward < 1.5 ? "Your risk-to-reward ratio is low. Consider adjusting your stop-loss or targets. " : "Your risk-to-reward ratio appears healthy. "}` +
-                `${winRate < 50 ? "Your win rate is below average. Review your strategy." : "Your win rate is above average. Keep refining your edge."}`;
+                `${totalRR >= 0 ? "You're positive overall. Keep it up!" : "You're negative overall. Review your setups."} `
+                + `Be aware of ${maxLossStreak >= 5 ? "long losing streaks" : "normal streak fluctuations"} to stay disciplined.`;
+
+            // Extra Insights Table
+            const extraHTML = `
+                <tr><th style="text-align:left;">Total RR</th><td>${totalRR.toFixed(2)}</td></tr>
+                <tr><th style="text-align:left;">Biggest Winning Streak</th><td>${maxWinStreak} trades</td></tr>
+                <tr><th style="text-align:left;">Biggest Losing Streak</th><td>${maxLossStreak} trades</td></tr>
+            `;
+            document.getElementById("extraInsightsTable").innerHTML = extraHTML;
+
+            // Populate RR By Year
+            let yearHTML = `<h3 style="color: #536dfd; margin-top:2rem;">RR by Year:</h3><ul>`;
+            Object.keys(rrByYear).sort().forEach(year => {
+                yearHTML += `<li>${year}: ${rrByYear[year].toFixed(2)}</li>`;
+            });
+            yearHTML += `</ul>`;
+            document.getElementById("rrByYear").innerHTML = yearHTML;
+
+            // Populate RR By Month
+            let monthHTML = `<h3 style="color: #536dfd; margin-top:2rem;">RR by Month in Each Year:</h3><div class="rr-by-year-grid">`;
+
+            Object.keys(rrByMonth).sort().forEach(year => {
+                monthHTML += `
+                        <div class="year-column">
+                            <h4>${year}</h4>
+                            <ul>
+                    `;
+
+                const orderedMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+                orderedMonths.forEach(month => {
+                    if (rrByMonth[year][month] !== undefined) {
+                        monthHTML += `<li>${month}: ${rrByMonth[year][month].toFixed(2)}</li>`;
+                    }
+                });
+
+                monthHTML += `
+                            </ul>
+                        </div>
+                    `;
+            });
+
+            monthHTML += `</div>`;
+            document.getElementById("rrByMonthGrid").innerHTML = monthHTML;
         }
+
     </script>
 </body>
+
+<div id="footer-container"></div>
+
+<script>
+    fetch("footer.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("footer-container").innerHTML = html;
+        });
+</script>
 
 </html>

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Feature</title>
     <link rel="stylesheet" href="sidebar.css" />
+    <link rel="stylesheet" href="footer.css" />
     <style>
         body {
             margin: 0;
@@ -121,7 +122,7 @@
     </style>
 </head>
 
-<body>
+<body class="dashboard">
     <div class="dashboard-container">
         <!-- Sidebar -->
         <div id="sidebar-container"></div>
@@ -141,18 +142,18 @@
             <section class="table-container">
                 <h3>Predict Trade Outcome</h3>
                 <input type="number" id="manualRiskReward" placeholder="e.g. 2.5" />
-                <button onclick="predictManual()">🔮 Predict Outcome</button>
+                <button onclick="predictManual()">Predict Outcome</button>
                 <div id="manualPrediction" style="display: none;"></div>
 
                 <hr />
                 <h4>Train Model with CSV</h4>
                 <input type="file" id="csvFile" accept=".csv" />
-                <button onclick="trainModelCSV()">📊 Train Model</button>
+                <button onclick="trainModelCSV()">Train Model</button>
                 <div id="csvTrainStatus"></div>
 
                 <hr />
                 <h4>Train with Your Trade History</h4>
-                <button onclick="trainModelMongo()">🧠 Train on History</button>
+                <button onclick="trainModelMongo()">Train on History</button>
                 <div id="mongoTrainStatus"></div>
 
                 <hr />
@@ -170,11 +171,11 @@
             .then(html => {
                 document.getElementById("sidebar-container").innerHTML = html;
 
-                // 🔐 Token Check
+                // Token Check
                 const token = localStorage.getItem("token");
                 if (!token) return window.location.href = "login.html";
 
-                // 🧠 Sidebar logic (username, pic, logout)
+                // Sidebar logic username, pic & logout
                 fetch("http://localhost:5001/api/profile", {
                     headers: { Authorization: `Bearer ${token}` }
                 })
@@ -194,8 +195,6 @@
                             });
                         }
                     });
-
-                // ✅ Fix: Attach listener to "Import Trade" after sidebar is injected
                 const openTradeModalBtn = document.getElementById("openTradeModal");
                 if (openTradeModalBtn) {
                     openTradeModalBtn.addEventListener("click", () => {
@@ -206,7 +205,6 @@
                     });
                 }
 
-                // ✅ Optional: Close Modal Handler (also safe here)
                 const closeModalBtn = document.getElementById("closeTradeModal");
                 if (closeModalBtn) {
                     closeModalBtn.addEventListener("click", () => {
@@ -214,17 +212,42 @@
                     });
                 }
 
-                // ✅ Sidebar hamburger toggle
+                // Sidebar hamburger toggle
                 const hamburger = document.getElementById("hamburgerBtn");
                 const sidebar = document.getElementById("sidebar");
                 if (hamburger && sidebar) {
                     hamburger.addEventListener("click", () => sidebar.classList.toggle("open"));
                 }
+
+                // Detect click outside sidebar to close it
+                document.addEventListener("click", (e) => {
+                    const isClickInsideSidebar = sidebar.contains(e.target);
+                    const isClickOnHamburger = hamburgerBtn.contains(e.target);
+
+                    if (!isClickInsideSidebar && !isClickOnHamburger && sidebar.classList.contains("open")) {
+                        sidebar.classList.remove("open");
+                        hamburgerBtn.style.display = "flex"; // Show hamburger again
+                    }
+                });
             });
 
     </script>
 
     <script>
+
+        async function safeLoadPredictions(retries = 0) {
+            try {
+                const ping = await fetch("http://localhost:5001/api/ping");
+                if (!ping.ok) throw new Error("Not ready");
+                loadSequencePredictions();
+            } catch {
+                if (retries > 10) {
+                    document.getElementById("predictionList").innerHTML = "<p style='color: red;'>❌ Backend unavailable after training.</p>";
+                    return;
+                }
+                setTimeout(() => safeLoadPredictions(retries + 1), 1000);
+            }
+        }
 
         async function predictManual() {
             const rr = document.getElementById("manualRiskReward").value;
@@ -240,6 +263,9 @@
         }
 
         async function trainModelMongo() {
+            const btn = document.querySelector('[onclick="trainModelMongo()"]');
+            btn.disabled = true;
+            btn.textContent = "⏳ Training...";
             try {
                 document.getElementById("mongoTrainStatus").textContent = "Training model...";
                 const res = await fetch("http://localhost:5001/api/ai/train/mongo", { method: "POST" });
@@ -248,26 +274,48 @@
 
                 const data = await res.json();
                 document.getElementById("mongoTrainStatus").textContent = data.message || "✅ Training Complete!";
-                setTimeout(loadSequencePredictions, 2000);
+                safeLoadPredictions();
             } catch (err) {
                 document.getElementById("mongoTrainStatus").textContent = "❌ Training failed. Check backend logs.";
                 console.error("Training error:", err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "🧠 Train on History";
             }
         }
 
         async function trainModelCSV() {
+            const btn = document.querySelector('[onclick="trainModelCSV()"]');
+            btn.disabled = true;
+            btn.textContent = "⏳ Uploading & Training...";
+
             const file = document.getElementById("csvFile").files[0];
-            if (!file) return alert("Please upload a CSV file.");
+            if (!file) {
+                alert("Please upload a CSV file.");
+                btn.disabled = false;
+                btn.textContent = "📊 Train Model";
+                return;
+            }
+
             const formData = new FormData();
             formData.append("file", file);
             document.getElementById("csvTrainStatus").textContent = "Uploading and training...";
-            const res = await fetch("http://localhost:5001/api/ai/train/csv", {
-                method: "POST",
-                body: formData
-            });
-            const data = await res.json();
-            document.getElementById("csvTrainStatus").textContent = data.message || "✅ CSV Training Complete!";
-            loadSequencePredictions();
+
+            try {
+                const res = await fetch("http://localhost:5001/api/ai/train/csv", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await res.json();
+                document.getElementById("csvTrainStatus").textContent = data.message || "CSV Training Complete!";
+                safeLoadPredictions();
+            } catch (err) {
+                document.getElementById("csvTrainStatus").textContent = "❌ CSV training failed.";
+                console.error("CSV Training Error:", err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "📊 Train Model";
+            }
         }
 
         async function loadSequencePredictions() {
@@ -293,8 +341,21 @@
                 console.error("Prediction error:", err);
             }
         }
+
         window.onload = loadSequencePredictions;
     </script>
+
 </body>
+
+<!-- Footer Placeholder -->
+<div id="footer-container"></div>
+
+<script>
+    fetch("footer.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("footer-container").innerHTML = html;
+        });
+</script>
 
 </html>

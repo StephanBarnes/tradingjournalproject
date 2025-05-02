@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:5001/api"; // Update this if the backend URL changes
+const BASE_URL = "http://localhost:5001/api";
 
 const apiService = {
     async registerUser(userData) {
@@ -35,7 +35,7 @@ const apiService = {
 
             const contentType = response.headers.get("content-type");
 
-            // Handle unexpected HTML response (e.g., 404 page)
+            // Handle unexpected HTML response
             if (!response.ok) {
                 if (contentType && contentType.includes("application/json")) {
                     const errorData = await response.json();

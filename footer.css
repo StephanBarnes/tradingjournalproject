@@ -4,11 +4,16 @@
     padding: 40px 20px;
     text-align: center;
     font-family: 'Inter', sans-serif;
-
-    /* Sidebar adjustment */
-    margin-left: 260px;
-    width: calc(100% - 260px);
+    margin: 0;
+    width: 100%;
     box-sizing: border-box;
+}
+
+@media (min-width: 769px) {
+    body.dashboard .footer {
+        margin-left: 260px;
+        width: calc(100% - 260px);
+    }
 }
 
 

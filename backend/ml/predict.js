@@ -1,10 +1,9 @@
-// === /ml/predict.js ===
 const tfPredict = require('@tensorflow/tfjs-node');
 
 /**
  * Loads the trained model and predicts outcome given a risk:reward
  * @param {number|string} riskToReward
- * @returns {Promise<number>} probability of Win (0–1)
+ * @returns {Promise<number>} 
  */
 async function predictOutcome(riskToReward) {
     const model = await tfPredict.loadLayersModel('file://ml/model/model.json');

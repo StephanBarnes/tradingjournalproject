@@ -7,10 +7,10 @@ const registerUser = async (req, res) => {
     let { username, email, password } = req.body;
 
     try {
-        // Normalize email (convert to lowercase)
+        // Normalise email (converts to lowercase)
         email = email.toLowerCase().trim();
 
-        // Check if the user already exists
+        // Checks if the user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
@@ -54,7 +54,7 @@ const loginUser = async (req, res) => {
     let { email, password } = req.body;
 
     try {
-        // Normalize email (convert to lowercase)
+        // Normalise email (converts to lowercase)
         email = email.toLowerCase().trim();
 
         // Find the user by email
@@ -69,12 +69,11 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        // Generate a JWT with a longer expiration time
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
             expiresIn: '24h',
         });
 
-        // Return a response excluding the password
+        // Return a response
         res.status(200).json({
             token,
             user: {

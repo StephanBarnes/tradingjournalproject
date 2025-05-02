@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FAQ - Trade Journal</title>
+    <link rel="stylesheet" href="footer.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #191818;
+            color: white;
+        }
+
+        .layout-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            flex: 1;
+            max-width: 900px;
+            margin: auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #00bfff;
+            margin-bottom: 1.5rem;
+        }
+
+        .faq-item {
+            background-color: #292828;
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+        }
+
+        .faq-item h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #536dfd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-answer {
+            margin-top: 1rem;
+            color: #ccc;
+            display: none;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        .faq-item.active h3::after {
+            content: "−";
+        }
+
+        .faq-item h3::after {
+            content: "+";
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+
+        #footer-container {
+            margin-top: 3rem;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout-wrapper">
+        <div class="page-container">
+            <h1>Frequently Asked Questions</h1>
+
+            <div class="faq-item">
+                <h3>What is Trade Journal and who is it for?</h3>
+                <div class="faq-answer">
+                    Trade Journal is a web-based tool I created to help forex, crypto, and indices traders track,
+                    analyse, and improve their performance. Whether you're a beginner or full-time trader, it's designed
+                    to support your growth.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <h3>Is it free to use?</h3>
+                <div class="faq-answer">
+                    Yes, the core features are completely free. I plan to introduce optional premium tools later — but
+                    I’ll always keep the essentials accessible to everyone.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <h3>Do I need to install anything?</h3>
+                <div class="faq-answer">
+                    Nope — it runs entirely in your browser. You can access it from your desktop, laptop, or phone.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <h3>Can I import trades from a CSV file?</h3>
+                <div class="faq-answer">
+                    Absolutely. You can upload a CSV and the system will automatically process and display your trades
+                    in the dashboard.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <h3>How does the AI feature work?</h3>
+                <div class="faq-answer">
+                    The AI analyses your trade history and provides predictive insights based on patterns it detects.
+                    It’s built using TensorFlow.js and improves as more data is added.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <h3>Is my data secure?</h3>
+                <div class="faq-answer">
+                    Yes — all trade data is stored securely and linked only to your user account. I don't share or sell
+                    user data. Your privacy is a top priority.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <h3>I found a bug or have a feature idea — what should I do?</h3>
+                <div class="faq-answer">
+                    I’d love to hear about it! Just head to the <a href="contact.html" style="color:#00bfff;">Contact
+                        Us</a> page and drop me a message.
+                </div>
+            </div>
+        </div>
+
+        <div id="footer-container"></div>
+    </div>
+
+    <script>
+        fetch("footer.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("footer-container").innerHTML = html;
+            });
+
+        document.querySelectorAll(".faq-item").forEach(item => {
+            item.addEventListener("click", () => {
+                item.classList.toggle("active");
+            });
+        });
+    </script>
+</body>
+
+</html>

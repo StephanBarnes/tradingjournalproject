@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Settings</title>
     <link rel="stylesheet" href="sidebar.css" />
+    <link rel="stylesheet" href="footer.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Base page layout, reusing styles from your dashboard */
         body {
             margin: 0;
             padding: 0;
@@ -115,13 +115,6 @@
             cursor: pointer;
         }
 
-        /* Profile Picture Section */
-        .profile-picture-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
         .profile-picture-container img {
             width: 80px;
             height: 80px;
@@ -146,17 +139,40 @@
         .settings-save-btn:hover {
             background-color: #45a049;
         }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #292828;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+        }
     </style>
 </head>
 
-<body>
+<body class="dashboard">
     <div class="dashboard-container">
-        <!-- Sidebar -->
+
         <aside class="sidebar" id="sidebar">
             <div class="logo">
                 <h1>Trade Journal</h1>
             </div>
-            <!-- Navigation Buttons -->
+
             <div id="sidebar-container"></div>
             <script>
                 fetch("sidebar.html")
@@ -170,8 +186,6 @@
                         }
                     });
             </script>
-
-            <div id="sidebar-container"></div>
 
             <script>
                 fetch("sidebar.html")
@@ -223,17 +237,6 @@
             <section class="settings-container">
                 <h2>User Settings</h2>
 
-                <!-- Profile Picture Upload -->
-                <div class="settings-form-group">
-                    <label>Profile Picture</label>
-                    <div class="profile-picture-container">
-                        <!-- Current profile pic preview -->
-                        <img id="profilePicPreview" src="profile-pic.jpg" alt="Profile Preview" />
-                        <!-- File input -->
-                        <input type="file" id="profilePicInput" accept="image/*" />
-                    </div>
-                </div>
-
                 <div class="settings-form-group">
                     <label for="email">Email Address</label>
                     <input type="email" id="email" placeholder="your.email@example.com" />
@@ -247,6 +250,11 @@
                 <div class="settings-form-group">
                     <label for="newPassword">New Password</label>
                     <input type="password" id="newPassword" placeholder="Enter new password" />
+                </div>
+
+                <div class="settings-form-group">
+                    <label>Two-Factor Authentication (2FA)</label>
+                    <button id="toggle2FA" style="background-color:#536dfd;">Loading...</button>
                 </div>
 
                 <div class="settings-form-group">
@@ -272,7 +280,6 @@
                         <option value="EST">EST (UTC -5)</option>
                         <option value="CST">CST (UTC -6)</option>
                         <option value="PST">PST (UTC -8)</option>
-                        <!-- Add more timezones as needed -->
                     </select>
                 </div>
 
@@ -282,20 +289,21 @@
                         <option value="en">English</option>
                         <option value="es">Spanish</option>
                         <option value="fr">French</option>
-                        <!-- etc. -->
                     </select>
                 </div>
 
                 <button class="settings-save-btn" id="saveSettingsBtn">Save Settings</button>
+
+                <button class="settings-save-btn" id="deleteAccountBtn" style="background-color: #f44336;">Delete
+                    Account</button>
+
             </section>
         </main>
     </div>
 
     <script type="module">
-        // Example: This script is purely illustrative
-        // You can expand or replace with your actual logic
 
-        // Toggle sidebar on mobile
+
         const sidebar = document.getElementById("sidebar");
         const hamburgerBtn = document.getElementById("hamburgerBtn");
         hamburgerBtn?.addEventListener("click", () => {
@@ -310,23 +318,27 @@
             window.location.href = "index.html";
         });
 
-        // Profile Picture Preview
+        // Profile Picture 
         const profilePicInput = document.getElementById("profilePicInput");
         const profilePicPreview = document.getElementById("profilePicPreview");
-        profilePicInput?.addEventListener("change", () => {
-            const file = profilePicInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    profilePicPreview.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+
+        if (profilePicInput && profilePicPreview) {
+            profilePicInput.addEventListener("change", () => {
+                const file = profilePicInput.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        profilePicPreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
 
         // Save Settings
         const saveSettingsBtn = document.getElementById("saveSettingsBtn");
-        saveSettingsBtn?.addEventListener("click", () => {
+        saveSettingsBtn?.addEventListener("click", async () => {
             const email = document.getElementById("email").value.trim();
             const currentPassword = document.getElementById("currentPassword").value.trim();
             const newPassword = document.getElementById("newPassword").value.trim();
@@ -335,23 +347,115 @@
             const timezone = document.getElementById("timezone").value;
             const language = document.getElementById("language").value;
 
-            // Additional logic to handle profile pic file if needed
-            const profilePicFile = profilePicInput.files[0];
+            const token = localStorage.getItem("token");
 
-            // For now, just show an alert with the changed settings
-            alert(
-                "Settings saved!\n\n" +
-                "Email: " + email + "\n" +
-                "Theme: " + theme + "\n" +
-                "Notifications: " + notifications + "\n" +
-                "Timezone: " + timezone + "\n" +
-                "Language: " + language + "\n" +
-                (profilePicFile ? "Profile Picture changed: " + profilePicFile.name : "")
-            );
+            try {
+                if (email) {
+                    await fetch("http://localhost:5001/api/profile/email", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ email })
+                    });
+                }
 
-            // In a real scenario, you'd send these details (and file) to your server
+                // Update password
+                if (currentPassword && newPassword) {
+                    const pwResponse = await fetch("http://localhost:5001/api/profile/password", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ currentPassword, newPassword })
+                    });
+
+                    const pwData = await pwResponse.json();
+                    if (!pwResponse.ok) throw new Error(pwData.message || "Password update failed");
+                }
+
+                alert("Settings updated successfully!");
+                window.location.reload();
+            } catch (err) {
+                console.error("Settings update error:", err.message);
+                alert(`❌ Failed to update: ${err.message}`);
+            }
         });
+
+
+        const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+        const deleteModal = document.getElementById("deleteModal");
+        const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+        const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+
+        // Open modal
+        deleteAccountBtn?.addEventListener("click", () => {
+            deleteModal.style.display = "flex";
+        });
+
+        // Cancel button
+        cancelDeleteBtn?.addEventListener("click", () => {
+            deleteModal.style.display = "none";
+        });
+
+        // Confirm Delete
+        confirmDeleteBtn?.addEventListener("click", async () => {
+            const token = localStorage.getItem("token");
+            try {
+                const res = await fetch("http://localhost:5001/api/profile", {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || "Account deletion failed");
+
+                alert("Your account has been deleted successfully.");
+                localStorage.removeItem("token");
+                window.location.href = "index.html"; // Redirect to homepage
+            } catch (err) {
+                console.error("Account delete error:", err.message);
+                alert(`Failed to delete account: ${err.message}`);
+            }
+        });
+
+
+
+
     </script>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <h3>⚠️ Confirm Account Deletion</h3>
+            <p>Are you sure you want to permanently delete your account?</p>
+            <p style="color: #ff6b6b;">This action cannot be undone.</p>
+            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 10px;">
+                <button id="confirmDeleteBtn"
+                    style="background-color: #f44336; padding: 10px 20px; border: none; border-radius: 6px; color: white; cursor: pointer;">Yes,
+                    Delete</button>
+                <button id="cancelDeleteBtn"
+                    style="background-color: #536dfd; padding: 10px 20px; border: none; border-radius: 6px; color: white; cursor: pointer;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+
 </body>
+
+
+<!-- Footer Placeholder -->
+<div id="footer-container"></div>
+
+<script>
+    fetch("footer.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("footer-container").innerHTML = html;
+        });
+</script>
 
 </html>

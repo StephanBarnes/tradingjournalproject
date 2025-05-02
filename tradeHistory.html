@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trade History</title>
     <link rel="stylesheet" href="sidebar.css" />
+    <link rel="stylesheet" href="footer.css" />
     <style>
         body {
             margin: 0;
@@ -93,7 +94,7 @@
     </style>
 </head>
 
-<body>
+<body class="dashboard">
     <div class="dashboard-container">
         <div id="sidebar-container"></div>
 
@@ -133,11 +134,10 @@
             .then(html => {
                 document.getElementById("sidebar-container").innerHTML = html;
 
-                // 🔐 Token Check
+                // Token Check
                 const token = localStorage.getItem("token");
                 if (!token) return window.location.href = "login.html";
 
-                // 🧠 Sidebar logic (username, pic, logout)
                 fetch("http://localhost:5001/api/profile", {
                     headers: { Authorization: `Bearer ${token}` }
                 })
@@ -158,7 +158,6 @@
                         }
                     });
 
-                // ✅ Fix: Attach listener to "Import Trade" after sidebar is injected
                 const openTradeModalBtn = document.getElementById("openTradeModal");
                 if (openTradeModalBtn) {
                     openTradeModalBtn.addEventListener("click", () => {
@@ -169,7 +168,6 @@
                     });
                 }
 
-                // ✅ Optional: Close Modal Handler (also safe here)
                 const closeModalBtn = document.getElementById("closeTradeModal");
                 if (closeModalBtn) {
                     closeModalBtn.addEventListener("click", () => {
@@ -177,12 +175,21 @@
                     });
                 }
 
-                // ✅ Sidebar hamburger toggle
                 const hamburger = document.getElementById("hamburgerBtn");
                 const sidebar = document.getElementById("sidebar");
                 if (hamburger && sidebar) {
                     hamburger.addEventListener("click", () => sidebar.classList.toggle("open"));
                 }
+
+                document.addEventListener("click", (e) => {
+                    const isClickInsideSidebar = sidebar.contains(e.target);
+                    const isClickOnHamburger = hamburgerBtn.contains(e.target);
+
+                    if (!isClickInsideSidebar && !isClickOnHamburger && sidebar.classList.contains("open")) {
+                        sidebar.classList.remove("open");
+                        hamburgerBtn.style.display = "flex";
+                    }
+                });
             });
 
         async function loadTradeHistory() {
@@ -226,5 +233,16 @@
         window.onload = loadTradeHistory;
     </script>
 </body>
+
+<!-- Footer Placeholder -->
+<div id="footer-container"></div>
+
+<script>
+    fetch("footer.html")
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("footer-container").innerHTML = html;
+        });
+</script>
 
 </html>
