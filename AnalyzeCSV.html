@@ -213,10 +213,27 @@
         }
 
         .year-column ul li::before {
-            content: "➔";
-            position: absolute;
-            left: 0;
-            color: #536dfd;
+            content: none;
+        }
+
+
+        .file-upload-label {
+            display: inline-block;
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #404040;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+
+        .file-upload-label:hover {
+            background-color: #535353;
         }
     </style>
 </head>
@@ -233,12 +250,12 @@
                     <button class="hamburger" id="hamburgerBtn">
                         <span></span><span></span><span></span>
                     </button>
-                    <h2 style="margin-left: 1rem;">Trade Data Analyzer</h2>
+
                 </div>
             </header>
 
             <div class="analyzer-container">
-                <h1>Trade Data Analyzer</h1>
+                <h1>Trade Data Analyser</h1>
 
                 <section style="margin-bottom: 2rem; text-align: center;">
                     <p>Upload your trading CSV file below to quickly analyse your historical trades. I will help you
@@ -247,8 +264,11 @@
                 </section>
 
                 <div class="upload-section">
-                    <input type="file" id="csvFileInput" accept=".csv" /><br />
-                    <button id="analyzeBtn">Analyse Data</button>
+                    <label for="csvFileInput" class="file-upload-label">📄 Select CSV File</label>
+                    <p style="font-size: 0.85rem; color: #aaa; margin-top: 0.5rem;">Required columns: Position, W/L, RR
+                        (case-sensitive)</p>
+                    <input type="file" id="csvFileInput" accept=".csv" style="display: none;" />
+                    <span id="csvFileInputName" style="display: block; margin-top: 8px; font-size: 0.9rem;"></span>
                 </div>
 
                 <div class="results" id="resultsSection" style="display:none;">
@@ -306,12 +326,11 @@
                 <section style="margin-top: 2rem; text-align: center; font-size: 0.95rem; color: #bbb;">
                     <h3 style="color: #536dfd;">How to Use This Tool</h3>
                     <ul style="list-style: none; padding: 0; margin-top: 1rem;">
-                        <li>➔ Export your trading history as a CSV from your broker or platform.</li>
-                        <li>➔ Make sure the file includes 'Symbol', 'Outcome', and 'Risk:Reward' columns.</li>
-                        <li>➔ Upload your file and click "Analyse Data" to see instant results.</li>
-                        <li>➔ Review your stats and refine your trading edge.</li>
+                        <li>Export your trade history as a CSV file from your broker or trading platform.</li>
+                        <li>Use the stats and recommendations to refine your trading edge.</li>
                     </ul>
                 </section>
+
             </div>
         </main>
     </div>
@@ -370,10 +389,10 @@
     </script>
 
     <script>
-        document.getElementById("analyzeBtn").addEventListener("click", function () {
-            const fileInput = document.getElementById("csvFileInput");
+        document.getElementById("csvFileInput").addEventListener("change", function () {
+            const fileInput = this;
             if (!fileInput.files.length) {
-                alert("Please upload a CSV file first.");
+                alert("Please upload a CSV file.");
                 return;
             }
             const file = fileInput.files[0];
@@ -390,6 +409,12 @@
                 }
             });
         });
+        document.getElementById("csvFileInput").addEventListener("change", function () {
+            const nameEl = document.getElementById("csvFileInputName");
+            nameEl.textContent = this.files[0]?.name || "No file selected";
+        });
+
+
 
         function analyzeTradeData(trades) {
             trades = trades.filter(trade => trade.Position);
@@ -402,6 +427,14 @@
             const avgRiskReward = wins.length > 0
                 ? wins.reduce((sum, t) => sum + (parseFloat(t["RR"]) || 0), 0) / wins.length
                 : 0;
+
+            const requiredFields = ["Position", "W/L", "RR"];
+            const missingFields = requiredFields.filter(field => !Object.keys(trades[0]).includes(field));
+            if (missingFields.length) {
+                alert(`❌ Your CSV is missing the following required column(s): ${missingFields.join(", ")}`);
+                return;
+            }
+
 
             // Calculate win/loss streaks
             let maxWinStreak = 0, maxLossStreak = 0, currentWinStreak = 0, currentLossStreak = 0;
